@@ -57,7 +57,8 @@ func main() {
 	t := flag.Int("t", 0, "timeout (seconds)")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: v1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
+		fmt.Fprintf(os.Stderr, "v1p version 0.1 (ivan.ribeiro@gmail.com)\n")
+		fmt.Fprintf(os.Stderr, "v1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
 		flag.PrintDefaults()
 	}
 
