@@ -2,35 +2,16 @@ package main
 
 import (
 	"./vlog"
+	"./vnet"
 	"flag"
 	"fmt"
-	"io"
 	"net"
 	"os"
-	"time"
 )
 
 const (
 	P = "[v1p] "
 )
-
-func T(exp bool, a interface{}, b interface{}) interface{} {
-	if exp {
-		return a
-	}
-	return b
-}
-
-func forward(local net.Conn, remoteAddr *string, timeout int) {
-	dialer := T((timeout > 0), net.Dialer{Timeout: time.Second * time.Duration(timeout)}, net.Dialer{}).(net.Dialer)
-	remote, err := dialer.Dial("tcp", *remoteAddr)
-	if remote == nil {
-		vlog.Err("remote dial failed: %v", err)
-		return
-	}
-	go io.Copy(local, remote)
-	go io.Copy(remote, local)
-}
 
 func vip(l, r *string, t int) {
 	vlog.Info("proxying %s to %s (t:%d)...", *l, *r, t)
@@ -45,7 +26,7 @@ func vip(l, r *string, t int) {
 			vlog.Err("accept failed: %v", err)
 			os.Exit(1)
 		}
-		go forward(conn, r, t)
+		go vnet.Forward(conn, r, t)
 	}
 }
 
