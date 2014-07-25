@@ -1,30 +1,31 @@
 package main
 
 import (
+	"./vlog"
 	"flag"
 	"fmt"
 	"io"
-	"log"
-	"log/syslog"
 	"net"
 	"os"
 	"time"
 )
 
 const (
-	T = "[v1p] "
+	P = "[v1p] "
 )
 
-var (
-	L func(string, ...interface{})
-	E func(string, ...interface{})
-)
+func T(exp bool, a interface{}, b interface{}) interface{} {
+	if exp {
+		return a
+	}
+	return b
+}
 
 func forward(local net.Conn, remoteAddr *string, timeout int) {
-	dialer := net.Dialer{Timeout: time.Second * time.Duration(timeout)}
+	dialer := T((timeout > 0), net.Dialer{Timeout: time.Second * time.Duration(timeout)}, net.Dialer{}).(net.Dialer)
 	remote, err := dialer.Dial("tcp", *remoteAddr)
 	if remote == nil {
-		E("remote dial failed: %v", err)
+		vlog.Err("remote dial failed: %v", err)
 		return
 	}
 	go io.Copy(local, remote)
@@ -32,16 +33,16 @@ func forward(local net.Conn, remoteAddr *string, timeout int) {
 }
 
 func vip(l, r *string, t int) {
-	L("proxying %s to %s (t:%d)...", *l, *r, t)
+	vlog.Info("proxying %s to %s (t:%d)...", *l, *r, t)
 	local, err := net.Listen("tcp", *l)
 	if local == nil {
-		E("cannot listen: %v", err)
+		vlog.Err("cannot listen: %v", err)
 		os.Exit(1)
 	}
 	for {
 		conn, err := local.Accept()
 		if conn == nil {
-			E("accept failed: %v", err)
+			vlog.Err("accept failed: %v", err)
 			os.Exit(1)
 		}
 		go forward(conn, r, t)
@@ -68,19 +69,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	log.SetPrefix(T)
-
-	if *s {
-		syslog, err := syslog.New(syslog.LOG_INFO, T)
-		if err != nil {
-			log.Fatal(err)
-		}
-		L = func(f string, a ...interface{}) { syslog.Info(fmt.Sprintf(f, a...)) }
-		E = func(f string, a ...interface{}) { syslog.Err(fmt.Sprintf(f, a...)) }
-	} else {
-		L = func(f string, a ...interface{}) { log.Println(fmt.Sprintf(f, a...)) }
-		E = L
-	}
+	vlog.SetLogger(P, *s)
 
 	if *l != "" && *r != "" {
 		vip(l, r, *t)
