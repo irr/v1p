@@ -1,6 +1,7 @@
 package vnet
 
 import (
+	"../vcfg"
 	"../vlog"
 	"../vutil"
 	"io"
@@ -14,9 +15,9 @@ func doForward(in, out net.Conn) {
 		n, vutil.T((err != nil), err, "OK"))
 }
 
-func Forward(local net.Conn, remoteAddr *string, timeout int) {
-	dialer := vutil.T((timeout > 0), net.Dialer{Timeout: time.Second * time.Duration(timeout)}, net.Dialer{}).(net.Dialer)
-	remote, err := dialer.Dial("tcp", *remoteAddr)
+func Forward(local net.Conn, v vcfg.Upstream) {
+	dialer := net.Dialer{Timeout: time.Second * time.Duration(v.Timeout), KeepAlive: time.Second * time.Duration(v.KeepAlive)}
+	remote, err := dialer.Dial("tcp", *v.Remote)
 	if remote == nil {
 		vlog.Err("remote dial failed: %v", err)
 		return

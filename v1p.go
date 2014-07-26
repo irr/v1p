@@ -15,9 +15,9 @@ const (
 	P = "[v1p] "
 )
 
-func vip(l, r *string, t int) {
-	vlog.Info("proxying %s to %s (t:%d)...", *l, *r, t)
-	local, err := net.Listen("tcp", *l)
+func vip(v vcfg.Upstream) {
+	vlog.Info("proxying %s to %s (t:%d,k:%d)...", *v.Local, *v.Remote, v.Timeout, v.KeepAlive)
+	local, err := net.Listen("tcp", *v.Local)
 	if local == nil {
 		vlog.Err("cannot listen: %v", err)
 		os.Exit(1)
@@ -28,7 +28,7 @@ func vip(l, r *string, t int) {
 			vlog.Err("accept failed: %v", err)
 			os.Exit(1)
 		}
-		go vnet.Forward(conn, r, t)
+		go vnet.Forward(conn, v)
 	}
 }
 
@@ -66,7 +66,8 @@ func main() {
 	}()
 
 	if *l != "" && *r != "" {
-		go vip(l, r, *t)
+		upstream := vcfg.Upstream{Local: l, Remote: r, Timeout: *t}
+		go vip(upstream)
 		<-barrier
 		os.Exit(0)
 	} else if *c != "" {
@@ -75,7 +76,7 @@ func main() {
 			vlog.Err("config error: %v", err)
 		}
 		for _, v := range *upstreams {
-			go vip(v.Local, v.Remote, *v.Timeout)
+			go vip(v)
 		}
 		<-barrier
 		os.Exit(0)
