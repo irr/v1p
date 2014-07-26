@@ -58,19 +58,17 @@ func main() {
 	barrier := make(chan int)
 
 	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
+	signal.Notify(sig, os.Interrupt, os.Kill)
 
 	go func() {
-		for v := range sig {
-			if v == os.Interrupt {
-				barrier <- 1
-			}
-		}
+		<-sig
+		barrier <- 1
 	}()
 
 	if *l != "" && *r != "" {
 		go vip(l, r, *t)
 		<-barrier
+		os.Exit(0)
 	} else if *c != "" {
 		upstreams, err := vcfg.ReadConfig(c)
 		if err != nil {
@@ -80,6 +78,7 @@ func main() {
 			go vip(v.Local, v.Remote, *v.Timeout)
 		}
 		<-barrier
+		os.Exit(0)
 	} else {
 		flag.Usage()
 		os.Exit(0)
