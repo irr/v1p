@@ -1,12 +1,14 @@
 package main
 
 import (
+	"./vcfg"
 	"./vlog"
 	"./vnet"
 	"flag"
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
 )
 
 const (
@@ -35,11 +37,12 @@ func main() {
 	h := flag.Bool("h", false, "help")
 	l := flag.String("l", "", "saddr:port (local)")
 	r := flag.String("r", "", "raddr:port (remote)")
+	c := flag.String("c", "", "config file")
 	t := flag.Int("t", 0, "timeout (seconds)")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "v1p version 0.1 (ivan.ribeiro@gmail.com)\n")
-		fmt.Fprintf(os.Stderr, "v1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
+		fmt.Fprintf(os.Stderr,
+			"v1p version 0.1 (ivan.ribeiro@gmail.com)\nv1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
 		flag.PrintDefaults()
 	}
 
@@ -52,8 +55,31 @@ func main() {
 
 	vlog.SetLogger(P, *s)
 
+	barrier := make(chan int)
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+
+	go func() {
+		for v := range sig {
+			if v == os.Interrupt {
+				barrier <- 1
+			}
+		}
+	}()
+
 	if *l != "" && *r != "" {
-		vip(l, r, *t)
+		go vip(l, r, *t)
+		<-barrier
+	} else if *c != "" {
+		upstreams, err := vcfg.ReadConfig(c)
+		if err != nil {
+			vlog.Err("config error: %v", err)
+		}
+		for _, v := range *upstreams {
+			go vip(v.Local, v.Remote, *v.Timeout)
+		}
+		<-barrier
 	} else {
 		flag.Usage()
 		os.Exit(0)
