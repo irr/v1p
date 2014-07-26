@@ -39,10 +39,11 @@ func main() {
 	r := flag.String("r", "", "raddr:port (remote)")
 	c := flag.String("c", "", "config file")
 	t := flag.Int("t", 0, "timeout (seconds)")
+	k := flag.Int("k", 0, "keepalive (seconds)")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
-			"v1p version 0.1 (ivan.ribeiro@gmail.com)\nv1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
+			"v1p version 0.1 (ivan.ribeiro@gmail.com)\nv1p [-s][-h][-t][-k] -l <addr:port> -r <addr:port>\n")
 		flag.PrintDefaults()
 	}
 
@@ -66,7 +67,7 @@ func main() {
 	}()
 
 	if *l != "" && *r != "" {
-		upstream := vcfg.Upstream{Local: l, Remote: r, Timeout: *t}
+		upstream := vcfg.Upstream{Local: l, Remote: r, Timeout: *t, KeepAlive: *k}
 		go vip(upstream)
 		<-barrier
 		os.Exit(0)
