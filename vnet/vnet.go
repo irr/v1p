@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-func doForward(in, out net.Conn, src, dst net.Addr) {
+func doForward(dir string, in, out net.Conn, p, src, dst net.Addr) {
 	n, err := io.Copy(in, out)
-	vlog.Info("%v -> %v = %v bytes [%v]", src, dst, n, vutil.T((err != nil), err, "OK"))
+	vlog.Info("%v %s %v %v %v [%v]", p, dir, src, dst, n, vutil.T((err != nil), err, "OK"))
 }
 
 func goForward(local net.Conn, v vcfg.Upstream, i int) {
@@ -22,8 +22,8 @@ func goForward(local net.Conn, v vcfg.Upstream, i int) {
 		vlog.Err("remote dial failed: %v", err)
 		return
 	}
-	go doForward(remote, local, remote.LocalAddr(), remote.RemoteAddr())
-	go doForward(local, remote, remote.RemoteAddr(), remote.LocalAddr())
+	go doForward(">", remote, local, local.LocalAddr(), remote.LocalAddr(), remote.RemoteAddr())
+	go doForward("<", local, remote, local.LocalAddr(), remote.RemoteAddr(), remote.LocalAddr())
 }
 
 func Vip(v vcfg.Upstream) {
