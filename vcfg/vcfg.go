@@ -6,8 +6,8 @@ import (
 )
 
 type Upstream struct {
-	Local     *string
-	Remote    *string
+	Local     string
+	Remote    []string
 	Timeout   int
 	KeepAlive int
 }

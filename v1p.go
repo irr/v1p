@@ -6,7 +6,6 @@ import (
 	"./vnet"
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 )
@@ -14,23 +13,6 @@ import (
 const (
 	P = "[v1p] "
 )
-
-func vip(v vcfg.Upstream) {
-	vlog.Info("proxying %s to %s (t:%d,k:%d)...", *v.Local, *v.Remote, v.Timeout, v.KeepAlive)
-	local, err := net.Listen("tcp", *v.Local)
-	if local == nil {
-		vlog.Err("cannot listen: %v", err)
-		os.Exit(1)
-	}
-	for {
-		conn, err := local.Accept()
-		if conn == nil {
-			vlog.Err("accept failed: %v", err)
-			os.Exit(1)
-		}
-		go vnet.Forward(conn, v)
-	}
-}
 
 func main() {
 	s := flag.Bool("s", false, "syslog (enabled/disabled)")
@@ -67,17 +49,19 @@ func main() {
 	}()
 
 	if *l != "" && *r != "" {
-		upstream := vcfg.Upstream{Local: l, Remote: r, Timeout: *t, KeepAlive: *k}
-		go vip(upstream)
+		remotes := []string{*r}
+		upstream := vcfg.Upstream{Local: *l, Remote: remotes, Timeout: *t, KeepAlive: *k}
+		go vnet.Vip(upstream)
 		<-barrier
 		os.Exit(0)
 	} else if *c != "" {
 		upstreams, err := vcfg.ReadConfig(c)
 		if err != nil {
 			vlog.Err("config error: %v", err)
+			os.Exit(1)
 		}
 		for _, v := range *upstreams {
-			go vip(v)
+			go vnet.Vip(v)
 		}
 		<-barrier
 		os.Exit(0)
