@@ -6,10 +6,10 @@ v1p
 Libraries
 -----------
 
-* [redigo]: Go client for Redis
+* [gocql]: A database/sql driver for CQL, the Cassandra query language for Go
 
 ```shell
-go get -v github.com/garyburd/redigo/redis
+go get -v github.com/tux21b/gocql
 ```
 
 Copyright and License
@@ -28,4 +28,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[redigo]: https://github.com/garyburd/redigo
+[gocql]: https://github.com/tux21b/gocql 
