@@ -3,6 +3,7 @@ package main
 import (
 	"./vcfg"
 	"./vlog"
+	"./vmon"
 	"./vnet"
 	"flag"
 	"fmt"
@@ -13,6 +14,13 @@ import (
 const (
 	P = "[v1p] "
 )
+
+func startMonitor(upstreams *[]vcfg.Upstream) {
+	for _, v := range *upstreams {
+		go vnet.Vip(v)
+	}
+	go vmon.Start(upstreams)
+}
 
 func main() {
 	s := flag.Bool("s", false, "syslog (enabled/disabled)")
@@ -50,8 +58,8 @@ func main() {
 
 	if *l != "" && *r != "" {
 		remotes := []string{*r}
-		upstream := vcfg.Upstream{Local: *l, Remote: remotes, Timeout: *t, KeepAlive: *k}
-		go vnet.Vip(upstream)
+		upstreams := []vcfg.Upstream{{Local: *l, Remote: remotes, Timeout: *t, KeepAlive: *k}}
+		startMonitor(&upstreams)
 		<-barrier
 		os.Exit(0)
 	} else if *c != "" {
@@ -60,9 +68,7 @@ func main() {
 			vlog.Err("config error: %v", err)
 			os.Exit(1)
 		}
-		for _, v := range *upstreams {
-			go vnet.Vip(v)
-		}
+		startMonitor(upstreams)
 		<-barrier
 		os.Exit(0)
 	} else {
