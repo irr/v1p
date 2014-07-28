@@ -3,15 +3,6 @@ v1p
 
 **v1p** generic tcp proxy
 
-Libraries
------------
-
-* [gocql]: A database/sql driver for CQL, the Cassandra query language for Go
-
-```shell
-go get -v github.com/tux21b/gocql
-```
-
 Copyright and License
 ---------------------
 Copyright 2014 Ivan Ribeiro Rocha
@@ -28,4 +19,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[gocql]: https://github.com/tux21b/gocql 
