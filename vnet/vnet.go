@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -18,10 +19,17 @@ const (
 
 func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, p, src, dst net.Addr) {
 	n, err := io.Copy(in, out)
+	if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
+		err = nil
+	}
 	if dir == IN {
 		vmon.Inc(v, n, 0, err)
+		out.Close()
+		in.Close()
 	} else if dir == OUT {
 		vmon.Inc(v, 0, n, err)
+		out.Close()
+		in.Close()
 	}
 	vlog.Info("%v %s %v %v %v [%v]", p, dir, src, dst, n, vutil.T((err != nil), err, "OK"))
 }

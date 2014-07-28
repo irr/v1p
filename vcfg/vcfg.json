@@ -1,2 +1,2 @@
 [ {"Local":"127.0.0.1:7777", "Remote":["www.uol.com.br:80", "www.bol.com.br:80"], "Timeout":10}, 
-  {"Local":"127.0.0.1:8888", "Remote":["www.yahoo.com:80"]} ]
+  {"Local":"127.0.0.1:8888", "Remote":["www.google.com:80"]} ]

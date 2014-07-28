@@ -32,17 +32,16 @@ func (c *Counters) Inc(in, out int64, err error) {
 }
 
 var (
-	wg       sync.WaitGroup
+	mutex    sync.Mutex
 	counters map[string]*Counters
 )
 
 func Inc(v *vcfg.Upstream, in, out int64, err error) {
 	go func() {
-		wg.Wait()
-		wg.Add(1)
+		mutex.Lock()
 		c := counters[v.Local]
 		c.Inc(in, out, err)
-		defer wg.Done()
+		mutex.Unlock()
 	}()
 }
 
