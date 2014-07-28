@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 type Counters struct {
@@ -31,12 +32,18 @@ func (c *Counters) Inc(in, out int64, err error) {
 }
 
 var (
+	wg       sync.WaitGroup
 	counters map[string]*Counters
 )
 
 func Inc(v *vcfg.Upstream, in, out int64, err error) {
-	c := counters[v.Local]
-	c.Inc(in, out, err)
+	go func() {
+		wg.Wait()
+		wg.Add(1)
+		c := counters[v.Local]
+		c.Inc(in, out, err)
+		defer wg.Done()
+	}()
 }
 
 func Server(w http.ResponseWriter, req *http.Request) {
