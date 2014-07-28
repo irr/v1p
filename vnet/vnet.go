@@ -3,6 +3,7 @@ package vnet
 import (
 	"../vcfg"
 	"../vlog"
+	"../vmon"
 	"../vutil"
 	"io"
 	"net"
@@ -10,8 +11,22 @@ import (
 	"time"
 )
 
-func doForward(dir string, in, out net.Conn, p, src, dst net.Addr) {
+const (
+	IN  = "<"
+	OUT = ">"
+)
+
+func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, p, src, dst net.Addr) {
 	n, err := io.Copy(in, out)
+	if err == nil {
+		if dir == IN {
+			vmon.In(v, n)
+		} else if dir == OUT {
+			vmon.Out(v, n)
+		}
+	} else {
+		vlog.Err("%v", err)
+	}
 	vlog.Info("%v %s %v %v %v [%v]", p, dir, src, dst, n, vutil.T((err != nil), err, "OK"))
 }
 
@@ -22,8 +37,8 @@ func goForward(local net.Conn, v vcfg.Upstream, i int) {
 		vlog.Err("remote dial failed: %v", err)
 		return
 	}
-	go doForward(">", remote, local, local.LocalAddr(), remote.LocalAddr(), remote.RemoteAddr())
-	go doForward("<", local, remote, local.LocalAddr(), remote.RemoteAddr(), remote.LocalAddr())
+	go doForward(OUT, &v, remote, local, local.LocalAddr(), remote.LocalAddr(), remote.RemoteAddr())
+	go doForward(IN, &v, local, remote, local.LocalAddr(), remote.RemoteAddr(), remote.LocalAddr())
 }
 
 func Vip(v vcfg.Upstream) {
