@@ -12,30 +12,31 @@ type Counters struct {
 	Remote   []string
 	BytesIn  int64
 	BytesOut int64
+	Success  uint64
+	Errors   uint64
 }
 
-func (c *Counters) In(b int64) {
-	c.BytesIn += b
-}
-
-func (c *Counters) Out(b int64) {
-	c.BytesOut += b
+func (c *Counters) Inc(in, out int64, err error) {
+	if in > 0 {
+		c.BytesIn += in
+	}
+	if out > 0 {
+		c.BytesOut += out
+	}
+	if err == nil {
+		c.Success += 1
+	} else {
+		c.Errors += 1
+	}
 }
 
 var (
-	counters map[string]Counters
+	counters map[string]*Counters
 )
 
-func In(v *vcfg.Upstream, b int64) {
+func Inc(v *vcfg.Upstream, in, out int64, err error) {
 	c := counters[v.Local]
-	c.In(b)
-	counters[v.Local] = c
-}
-
-func Out(v *vcfg.Upstream, b int64) {
-	c := counters[v.Local]
-	c.Out(b)
-	counters[v.Local] = c
+	c.Inc(in, out, err)
 }
 
 func Server(w http.ResponseWriter, req *http.Request) {
@@ -49,10 +50,9 @@ func Server(w http.ResponseWriter, req *http.Request) {
 }
 
 func Start(upstreams *[]vcfg.Upstream) {
-	counters = make(map[string]Counters)
+	counters = make(map[string]*Counters)
 	for _, v := range *upstreams {
-		counters[v.Local] = Counters{Remote: v.Remote}
-		vlog.Info("%s %#v %v", v.Local, counters[v.Local], v.Remote)
+		counters[v.Local] = &Counters{Remote: v.Remote}
 	}
 	http.HandleFunc("/", Server)
 	err := http.ListenAndServe(":1972", nil)

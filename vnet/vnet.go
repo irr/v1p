@@ -18,14 +18,10 @@ const (
 
 func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, p, src, dst net.Addr) {
 	n, err := io.Copy(in, out)
-	if err == nil {
-		if dir == IN {
-			vmon.In(v, n)
-		} else if dir == OUT {
-			vmon.Out(v, n)
-		}
-	} else {
-		vlog.Err("%v", err)
+	if dir == IN {
+		vmon.Inc(v, n, 0, err)
+	} else if dir == OUT {
+		vmon.Inc(v, 0, n, err)
 	}
 	vlog.Info("%v %s %v %v %v [%v]", p, dir, src, dst, n, vutil.T((err != nil), err, "OK"))
 }
