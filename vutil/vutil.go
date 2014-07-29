@@ -2,7 +2,6 @@ package vutil
 
 import (
 	"errors"
-	"fmt"
 )
 
 func T(exp bool, a interface{}, b interface{}) interface{} {
@@ -14,12 +13,12 @@ func T(exp bool, a interface{}, b interface{}) interface{} {
 
 type CAPArray struct {
 	N int
-	a []interface{}
+	A []interface{}
 }
 
 func (c *CAPArray) init() {
-	if c.a == nil {
-		c.a = make([]interface{}, 0, c.N+1)
+	if c.A == nil {
+		c.A = make([]interface{}, 0, c.N+1)
 	}
 }
 
@@ -30,55 +29,64 @@ func (c *CAPArray) Fill(e interface{}) {
 }
 
 func (c *CAPArray) Geth(i int) (interface{}, error) {
-	if len(c.a) != c.N {
+	if len(c.A) != c.N {
 		return nil, errors.New("CAPArray must be full")
 	}
 	if i <= 0 || i > c.N {
 		return nil, errors.New("index out of range")
 	}
-	return c.a[c.N-i], nil
+	return c.A[c.N-i], nil
 }
 
 func (c *CAPArray) Seth(i int, e interface{}) error {
-	if len(c.a) != c.N {
+	if len(c.A) != c.N {
 		return errors.New("CAPArray must be full")
 	}
-	c.a[c.N-i] = e
+	c.A[c.N-i] = e
+	return nil
+}
+
+func (c *CAPArray) Incth(i int) error {
+	if len(c.A) != c.N {
+		return errors.New("CAPArray must be full")
+	}
+	pos := c.N - i
+	c.A[pos] = c.A[pos].(int) + 1
 	return nil
 }
 
 func (c *CAPArray) Push(e interface{}) {
 	c.init()
-	c.a = append(c.a, e)
-	if len(c.a) > c.N {
-		c.a = c.a[1:len(c.a)]
+	c.A = append(c.A, e)
+	if len(c.A) > c.N {
+		c.A = c.A[1:len(c.A)]
 	}
 }
 
 func (c *CAPArray) Pop() (e interface{}) {
-	if c.a == nil {
+	if c.A == nil {
 		return
 	}
-	e = c.a[len(c.a)-1]
-	c.a = c.a[:len(c.a)-1]
+	e = c.A[len(c.A)-1]
+	c.A = c.A[:len(c.A)-1]
 	return e
 }
 
 func (c *CAPArray) Unshift(e interface{}) {
 	c.init()
-	c.a = append(c.a, e)
-	copy(c.a[1:], c.a[0:])
-	c.a[0] = e
-	if len(c.a) > c.N {
-		c.a = c.a[0 : len(c.a)-1]
+	c.A = append(c.A, e)
+	copy(c.A[1:], c.A[0:])
+	c.A[0] = e
+	if len(c.A) > c.N {
+		c.A = c.A[0 : len(c.A)-1]
 	}
 }
 
 func (c *CAPArray) Shift() (e interface{}) {
-	if c.a == nil {
+	if c.A == nil {
 		return
 	}
-	e = c.a[0]
-	c.a = c.a[1:]
+	e = c.A[0]
+	c.A = c.A[1:]
 	return e
 }

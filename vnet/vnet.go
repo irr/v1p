@@ -41,6 +41,7 @@ func goForward(local net.Conn, v vcfg.Upstream, i int) {
 		vlog.Err("remote dial failed: %v", err)
 		return
 	}
+	vmon.AddStats()
 	go doForward(OUT, &v, remote, local, local.LocalAddr(), remote.LocalAddr(), remote.RemoteAddr())
 	go doForward(IN, &v, local, remote, local.LocalAddr(), remote.RemoteAddr(), remote.LocalAddr())
 }

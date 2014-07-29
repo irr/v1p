@@ -19,6 +19,11 @@ type Counters struct {
 	Errors   uint64
 }
 
+type Stats struct {
+	Counters *map[string]*Counters
+	Stats    *vutil.CAPArray
+}
+
 func (c *Counters) Inc(in, out int64, err error) {
 	if in > 0 {
 		c.BytesIn += in
@@ -48,9 +53,20 @@ func Inc(v *vcfg.Upstream, in, out int64, err error) {
 	}()
 }
 
+func AddStats() {
+	go func() {
+		mutex.Lock()
+		stats.Incth(1)
+		mutex.Unlock()
+	}()
+}
+
 func Server(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	b, err := json.Marshal(counters)
+	mutex.Lock()
+	c := Stats{Counters: &counters, Stats: &stats}
+	b, err := json.Marshal(c)
+	mutex.Unlock()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
@@ -59,9 +75,10 @@ func Server(w http.ResponseWriter, req *http.Request) {
 }
 
 func Scheduler(c <-chan time.Time) {
-	for now := range c {
+	for {
+		<-c
 		mutex.Lock()
-		fmt.Printf("%v %#v\n", now, stats)
+		stats.Push(0)
 		mutex.Unlock()
 	}
 }
@@ -73,7 +90,7 @@ func Start(upstreams *[]vcfg.Upstream) {
 	}
 	stats = vutil.CAPArray{N: 60}
 	stats.Fill(0)
-	scheduler := time.Tick(1 * time.Second)
+	scheduler := time.Tick(1 * time.Minute)
 	go Scheduler(scheduler)
 	http.HandleFunc("/", Server)
 	err := http.ListenAndServe(":1972", nil)
