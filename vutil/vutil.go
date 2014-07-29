@@ -82,15 +82,3 @@ func (c *CAPArray) Shift() (e interface{}) {
 	c.a = c.a[1:]
 	return e
 }
-
-func (c *CAPArray) Dump(f string) {
-	if len(c.a) > 0 {
-		fmt.Printf(fmt.Sprintf("n=%s first=%s last=%s { ", f, f, f), len(c.a), c.a[0], c.a[len(c.a)-1])
-		for _, v := range c.a {
-			fmt.Printf(f, v)
-		}
-		fmt.Println("}")
-	} else {
-		fmt.Println("{}")
-	}
-}
