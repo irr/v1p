@@ -35,7 +35,7 @@ func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, p, src, dst net.A
 }
 
 func goForward(local net.Conn, v vcfg.Upstream, i int) {
-	dialer := net.Dialer{Timeout: time.Second * time.Duration(v.Timeout), KeepAlive: time.Second * time.Duration(v.KeepAlive)}
+	dialer := net.Dialer{Timeout: time.Second * time.Duration(v.Timeout)}
 	remote, err := dialer.Dial("tcp", v.Remote[i])
 	if remote == nil {
 		vlog.Err("remote dial failed: %v", err)
@@ -46,7 +46,7 @@ func goForward(local net.Conn, v vcfg.Upstream, i int) {
 }
 
 func Vip(v vcfg.Upstream) {
-	vlog.Info("proxying %s to %v (t:%d,k:%d)...", v.Local, v.Remote, v.Timeout, v.KeepAlive)
+	vlog.Info("proxying %s to %v (t:%d)...", v.Local, v.Remote, v.Timeout)
 	local, err := net.Listen("tcp", v.Local)
 	if local == nil {
 		vlog.Err("cannot listen: %v", err)
