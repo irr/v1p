@@ -14,6 +14,11 @@ v1p [-s][-h][-t] -l <addr:port> -r <addr:port>
   -t=0: timeout (seconds)
 ```
 
+Log format:
+```shell
+[v1p] [DATE] [LOCAL ADDR/PORT] [IN="<"|OUT=">"] [FROM] [TO] [bytes] [OK|ERR]
+```
+
 Using command line options:
 ```shell
 [irocha@irrlab v1p (master)]$ ./v1p -l localhost:7777 -r google.com:80
@@ -22,11 +27,6 @@ Using command line options:
 [v1p] 2014/07/30 09:21:44 127.0.0.1:7777 > 172.22.33.140:33283 173.194.118.41:80 168 [OK]
 [v1p] 2014/07/30 09:21:44 127.0.0.1:7777 < 173.194.118.41:80 172.22.33.140:33283 287 [OK]
 ...
-```
-
-Log format:
-```shell
-[v1p] [DATE] [LOCAL ADDR/PORT] [IN="<"|OUT=">"] [FROM] [TO] [bytes] [OK|ERR]
 ```
 ```shell
 [irocha@irrlab v1p (master)]$ curl -I localhost:7777
