@@ -24,6 +24,17 @@ type Stats struct {
 	Stats    *vutil.CAPArray
 }
 
+const (
+	GAP_SECS   = 60
+	GAP_LENGTH = 15
+)
+
+var (
+	mutex     sync.Mutex
+	upstreams *[]vcfg.Upstream
+	stats     vutil.CAPArray
+)
+
 func (c *Counters) Inc(in, out int64, err error) {
 	if in > 0 {
 		c.BytesIn += in
@@ -38,25 +49,15 @@ func (c *Counters) Inc(in, out int64, err error) {
 	}
 }
 
-var (
-	mutex    sync.Mutex
-	counters map[string]*Counters
-	stats    vutil.CAPArray
-)
-
 func Inc(v *vcfg.Upstream, in, out int64, err error) {
 	go func() {
 		mutex.Lock()
-		c := counters[v.Local]
-		c.Inc(in, out, err)
-		mutex.Unlock()
-	}()
-}
-
-func AddStats() {
-	go func() {
-		mutex.Lock()
-		stats.Incth(1)
+		e, err := stats.Geth(1)
+		if err == nil {
+			m := e.(*map[string]*Counters)
+			c := (*m)[v.Local]
+			c.Inc(in, out, err)
+		}
 		mutex.Unlock()
 	}()
 }
@@ -64,8 +65,7 @@ func AddStats() {
 func Server(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	mutex.Lock()
-	c := Stats{Counters: &counters, Stats: &stats}
-	b, err := json.Marshal(c)
+	b, err := json.Marshal(stats)
 	mutex.Unlock()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -74,23 +74,33 @@ func Server(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func BuildCounter() *map[string]*Counters {
+	c := make(map[string]*Counters)
+	for _, v := range *upstreams {
+		c[v.Local] = new(Counters)
+		c[v.Local].Remote = v.Remote
+	}
+	return &c
+}
+
 func Scheduler(c <-chan time.Time) {
 	for {
 		<-c
 		mutex.Lock()
-		stats.Push(0)
+		stats.Push(BuildCounter())
 		mutex.Unlock()
 	}
 }
 
-func Start(upstreams *[]vcfg.Upstream) {
-	counters = make(map[string]*Counters)
-	for _, v := range *upstreams {
-		counters[v.Local] = &Counters{Remote: v.Remote}
+func Start(ups *[]vcfg.Upstream) {
+	upstreams = ups
+	mutex.Lock()
+	stats = vutil.CAPArray{N: GAP_LENGTH}
+	for i := 0; i < stats.N; i++ {
+		stats.Push(BuildCounter())
 	}
-	stats = vutil.CAPArray{N: 60}
-	stats.Fill(0)
-	scheduler := time.Tick(1 * time.Minute)
+	mutex.Unlock()
+	scheduler := time.Tick(GAP_SECS * time.Second)
 	go Scheduler(scheduler)
 	http.HandleFunc("/", Server)
 	err := http.ListenAndServe(":1972", nil)

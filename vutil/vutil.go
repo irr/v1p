@@ -22,12 +22,6 @@ func (c *CAPArray) init() {
 	}
 }
 
-func (c *CAPArray) Fill(e interface{}) {
-	for i := 0; i < c.N; i++ {
-		c.Push(e)
-	}
-}
-
 func (c *CAPArray) Geth(i int) (interface{}, error) {
 	if len(c.A) != c.N {
 		return nil, errors.New("CAPArray must be full")
@@ -46,15 +40,6 @@ func (c *CAPArray) Seth(i int, e interface{}) error {
 	return nil
 }
 
-func (c *CAPArray) Incth(i int) error {
-	if len(c.A) != c.N {
-		return errors.New("CAPArray must be full")
-	}
-	pos := c.N - i
-	c.A[pos] = c.A[pos].(int) + 1
-	return nil
-}
-
 func (c *CAPArray) Push(e interface{}) {
 	c.init()
 	c.A = append(c.A, e)
@@ -64,8 +49,8 @@ func (c *CAPArray) Push(e interface{}) {
 }
 
 func (c *CAPArray) Pop() (e interface{}) {
-	if c.A == nil {
-		return
+	if c.A == nil || len(c.A) == 0 {
+		return nil
 	}
 	e = c.A[len(c.A)-1]
 	c.A = c.A[:len(c.A)-1]
@@ -83,8 +68,8 @@ func (c *CAPArray) Unshift(e interface{}) {
 }
 
 func (c *CAPArray) Shift() (e interface{}) {
-	if c.A == nil {
-		return
+	if c.A == nil || len(c.A) == 0 {
+		return nil
 	}
 	e = c.A[0]
 	c.A = c.A[1:]
