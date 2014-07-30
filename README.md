@@ -7,7 +7,6 @@ Help:
 v1p version 0.1 (ivan.ribeiro@gmail.com)
 v1p [-s][-h][-t] -l <addr:port> -r <addr:port>
   -c="": config file
-  -h=false: help
   -l="": saddr:port (local)
   -r="": raddr:port (remote)
   -s=false: syslog (enabled/disabled)
