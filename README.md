@@ -23,6 +23,11 @@ Using command line options:
 [v1p] 2014/07/30 09:21:44 127.0.0.1:7777 < 173.194.118.41:80 172.22.33.140:33283 287 [OK]
 ...
 ```
+
+Log format:
+```shell
+[v1p] [DATE] [LOCAL ADDR/PORT] [IN="<"|OUT=">"] [FROM] [TO] [bytes] [OK|ERR]
+```
 ```shell
 [irocha@irrlab v1p (master)]$ curl -I localhost:7777
 HTTP/1.1 302 Found
