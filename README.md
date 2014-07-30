@@ -1,8 +1,7 @@
 v1p
 -----------
 
-**v1p** generic tcp proxy
-
+Help:
 ```shell
 [irocha@irrlab v1p (master)]$ ./v1p 
 v1p version 0.1 (ivan.ribeiro@gmail.com)
@@ -14,6 +13,8 @@ v1p [-s][-h][-t] -l <addr:port> -r <addr:port>
   -s=false: syslog (enabled/disabled)
   -t=0: timeout (seconds)
 ```
+
+Using command line options:
 ```shell
 [irocha@irrlab v1p (master)]$ ./v1p -l localhost:7777 -r google.com:80
 [v1p] 2014/07/30 09:20:41 proxying localhost:7777 to [google.com:80] (t:0)...
@@ -36,6 +37,7 @@ X-XSS-Protection: 1; mode=block
 Alternate-Protocol: 80:quic
 ```
 
+Using configuration file:
 ```shell
 [irocha@irrlab v1p (master)]$ cat vcfg/vcfg.json 
 [ {"Local":"127.0.0.1:7777", "Remote":["www.uol.com.br:80", "www.bol.com.br:80"], "Timeout":10}, 
@@ -70,6 +72,7 @@ The document has moved
 </BODY></HTML>
 ```
 
+Retrieving **JSON** statistics (last 15 minutes) using 1 slot per minute:
 ```shell
 [irocha@irrlab v1p (master)]$ curl localhost:1972 |python -mjson.tool
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
