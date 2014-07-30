@@ -20,8 +20,8 @@ type Counters struct {
 }
 
 type Stats struct {
+	Date     time.Time
 	Counters *map[string]*Counters
-	Stats    *vutil.CAPArray
 }
 
 const (
@@ -65,7 +65,17 @@ func Inc(v *vcfg.Upstream, in, out int64, err error) {
 func Server(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	mutex.Lock()
-	b, err := json.Marshal(stats)
+	ts := make([]Stats, stats.N, stats.N)
+	now := time.Now()
+	for i := 0; i < stats.N; i++ {
+		v, _ := stats.Geth(i + 1)
+		if v != nil {
+			c := v.(*map[string]*Counters)
+			ts[i] = Stats{Date: now, Counters: c}
+		}
+		now = now.Add(-1 * GAP_SECS * time.Second)
+	}
+	b, err := json.Marshal(ts)
 	mutex.Unlock()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
