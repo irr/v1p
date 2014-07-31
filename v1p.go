@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	P = "[v1p] "
+	VERSION = "0.3"
+	P       = "[v1p] "
 )
 
 func startMonitor(upstreams *[]vcfg.Upstream) {
@@ -33,7 +34,7 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
-			"v1p version 0.1 (ivan.ribeiro@gmail.com)\nv1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n")
+			"v1p version %s (ivan.ribeiro@gmail.com)\nv1p [-s][-h][-t] -l <addr:port> -r <addr:port>\n", VERSION)
 		flag.PrintDefaults()
 	}
 

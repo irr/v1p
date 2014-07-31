@@ -4,7 +4,7 @@ v1p
 Help:
 ```shell
 [irocha@irrlab v1p (master)]$ ./v1p 
-v1p version 0.1 (ivan.ribeiro@gmail.com)
+v1p version 0.3 (ivan.ribeiro@gmail.com)
 v1p [-s][-h][-t] -l <addr:port> -r <addr:port>
   -c="": config file
   -l="": saddr:port (local)
