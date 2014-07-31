@@ -10,6 +10,7 @@ type Upstream struct {
 	Remote    []string
 	Timeout   int
 	KeepAlive int
+	N         int
 }
 
 func ReadConfig(f *string) (*[]Upstream, error) {
