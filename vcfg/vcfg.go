@@ -10,7 +10,6 @@ type Upstream struct {
 	Remote      []string
 	Connections []int
 	Timeout     int
-	KeepAlive   int
 	N           int
 }
 
