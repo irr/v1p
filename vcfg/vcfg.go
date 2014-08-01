@@ -6,11 +6,12 @@ import (
 )
 
 type Upstream struct {
-	Local     string
-	Remote    []string
-	Timeout   int
-	KeepAlive int
-	N         int
+	Local       string
+	Remote      []string
+	Connections []int
+	Timeout     int
+	KeepAlive   int
+	N           int
 }
 
 func ReadConfig(f *string) (*[]Upstream, error) {

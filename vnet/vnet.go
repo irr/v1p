@@ -17,21 +17,22 @@ const (
 	OUT = ">"
 )
 
-func doForward(dir string, v *vcfg.Upstream, in, out net.Conn) {
+func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, idx int) {
 	n, err := io.Copy(in, out)
 	if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
 		err = nil
 	}
 	if dir == IN {
+		v.Connections[idx] = v.Connections[idx] - 1
 		vmon.Inc(v, n, 0, err)
-		vlog.Info("%v %s %v %v %v [%v]",
+		vlog.Info("%v %s %v %v %v (%d)[%v]",
 			in.LocalAddr(), dir, out.RemoteAddr(), out.LocalAddr(),
-			n, vutil.T((err != nil), err, "OK"))
+			n, v.Connections[idx], vutil.T((err != nil), err, "OK"))
 	} else if dir == OUT {
 		vmon.Inc(v, 0, n, err)
-		vlog.Info("%v %s %v %v %v [%v]",
+		vlog.Info("%v %s %v %v %v (%d)[%v]",
 			out.LocalAddr(), dir, in.LocalAddr(), in.RemoteAddr(),
-			n, vutil.T((err != nil), err, "OK"))
+			n, v.Connections[idx], vutil.T((err != nil), err, "OK"))
 	}
 	out.Close()
 	in.Close()
@@ -44,9 +45,13 @@ func goForward(local net.Conn, v *vcfg.Upstream) {
 		v.N = vutil.T((v.N >= len(v.Remote)), 0, v.N).(int)
 		remote, err := dialer.Dial("tcp", v.Remote[v.N])
 		if err == nil {
+			if len(v.Connections) == 0 {
+				v.Connections = make([]int, len(v.Remote), len(v.Remote))
+			}
+			v.Connections[v.N] = v.Connections[v.N] + 1
+			go doForward(OUT, v, remote, local, v.N)
+			go doForward(IN, v, local, remote, v.N)
 			v.N = v.N + 1
-			go doForward(OUT, v, remote, local)
-			go doForward(IN, v, local, remote)
 			ok = true
 			break
 		}
