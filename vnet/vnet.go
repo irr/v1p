@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -46,9 +47,9 @@ func goForward(local net.Conn, v *vcfg.Upstream) {
 		remote, err := dialer.Dial("tcp", v.Remote[v.N])
 		if err == nil {
 			if len(v.Connections) == 0 {
-				v.Connections = make([]int, len(v.Remote), len(v.Remote))
+				v.Connections = make([]int64, len(v.Remote), len(v.Remote))
 			}
-			v.Connections[v.N] = v.Connections[v.N] + 1
+			atomic.AddInt64(&v.Connections[v.N], 1)
 			go doForward(OUT, v, remote, local, v.N)
 			go doForward(IN, v, local, remote, v.N)
 			v.N = v.N + 1

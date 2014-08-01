@@ -8,7 +8,7 @@ import (
 type Upstream struct {
 	Local       string
 	Remote      []string
-	Connections []int
+	Connections []int64
 	Timeout     int
 	N           int
 }
