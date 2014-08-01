@@ -46,9 +46,6 @@ func goForward(local net.Conn, v *vcfg.Upstream) {
 		v.N = vutil.T((v.N >= len(v.Remote)), 0, v.N).(int)
 		remote, err := dialer.Dial("tcp", v.Remote[v.N])
 		if err == nil {
-			if len(v.Connections) == 0 {
-				v.Connections = make([]int64, len(v.Remote), len(v.Remote))
-			}
 			atomic.AddInt64(&v.Connections[v.N], 1)
 			go doForward(OUT, v, remote, local, v.N)
 			go doForward(IN, v, local, remote, v.N)

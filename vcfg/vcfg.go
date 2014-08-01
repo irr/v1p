@@ -23,5 +23,9 @@ func ReadConfig(f *string) (*[]Upstream, error) {
 	if err != nil {
 		return nil, err
 	}
+	for i := 0; i < len(upstreams); i++ {
+		n := len(upstreams[i].Remote)
+		upstreams[i].Connections = make([]int64, n, n)
+	}
 	return &upstreams, nil
 }
