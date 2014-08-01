@@ -9,7 +9,6 @@ import (
 	"net"
 	"os"
 	"strings"
-	"sync/atomic"
 	"time"
 )
 
@@ -18,22 +17,21 @@ const (
 	OUT = ">"
 )
 
-func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, idx int) {
+func doForward(dir string, v *vcfg.Upstream, in, out net.Conn) {
 	n, err := io.Copy(in, out)
 	if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
 		err = nil
 	}
 	if dir == IN {
-		atomic.AddInt64(&v.Connections[idx], -1)
 		vmon.Inc(v, n, 0, err)
-		vlog.Info("%v %s %v %v %v (%d)[%v]",
+		vlog.Info("%v %s %v %v %v [%v]",
 			in.LocalAddr(), dir, out.RemoteAddr(), out.LocalAddr(),
-			n, v.Connections[idx], vutil.T((err != nil), err, "OK"))
+			n, vutil.T((err != nil), err, "OK"))
 	} else if dir == OUT {
 		vmon.Inc(v, 0, n, err)
-		vlog.Info("%v %s %v %v %v (%d)[%v]",
+		vlog.Info("%v %s %v %v %v [%v]",
 			out.LocalAddr(), dir, in.LocalAddr(), in.RemoteAddr(),
-			n, v.Connections[idx], vutil.T((err != nil), err, "OK"))
+			n, vutil.T((err != nil), err, "OK"))
 	}
 	out.Close()
 	in.Close()
@@ -46,9 +44,8 @@ func goForward(local net.Conn, v *vcfg.Upstream) {
 		v.N = vutil.T((v.N >= len(v.Remote)), 0, v.N).(int)
 		remote, err := dialer.Dial("tcp", v.Remote[v.N])
 		if err == nil {
-			atomic.AddInt64(&v.Connections[v.N], 1)
-			go doForward(OUT, v, remote, local, v.N)
-			go doForward(IN, v, local, remote, v.N)
+			go doForward(OUT, v, remote, local)
+			go doForward(IN, v, local, remote)
 			v.N = v.N + 1
 			ok = true
 			break

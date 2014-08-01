@@ -6,11 +6,10 @@ import (
 )
 
 type Upstream struct {
-	Local       string
-	Remote      []string
-	Connections []int64
-	Timeout     int
-	N           int
+	Local   string
+	Remote  []string
+	Timeout int
+	N       int
 }
 
 func ReadConfig(f *string) (*[]Upstream, error) {
@@ -22,10 +21,6 @@ func ReadConfig(f *string) (*[]Upstream, error) {
 	err = json.Unmarshal(b, &upstreams)
 	if err != nil {
 		return nil, err
-	}
-	for i := 0; i < len(upstreams); i++ {
-		n := len(upstreams[i].Remote)
-		upstreams[i].Connections = make([]int64, n, n)
 	}
 	return &upstreams, nil
 }
