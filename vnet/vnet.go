@@ -24,7 +24,7 @@ func doForward(dir string, v *vcfg.Upstream, in, out net.Conn, idx int) {
 		err = nil
 	}
 	if dir == IN {
-		v.Connections[idx] = v.Connections[idx] - 1
+		atomic.AddInt64(&v.Connections[idx], -1)
 		vmon.Inc(v, n, 0, err)
 		vlog.Info("%v %s %v %v %v (%d)[%v]",
 			in.LocalAddr(), dir, out.RemoteAddr(), out.LocalAddr(),
