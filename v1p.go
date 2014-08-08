@@ -17,9 +17,8 @@ const (
 )
 
 func startMonitor(upstreams *[]vcfg.Upstream) {
-	for _, e := range *upstreams {
-		v := e
-		go vnet.Vip(&v)
+	for k := range *upstreams {
+		go vnet.Vip(&(*upstreams)[k])
 	}
 	go vmon.Start(upstreams)
 }
