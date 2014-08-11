@@ -32,7 +32,7 @@ const (
 var (
 	mutex     sync.Mutex
 	upstreams *[]vcfg.Upstream
-	stats     vutil.CAPArray
+	stats     *vutil.CAPArray
 )
 
 func (c *Counters) Inc(in, out int64, err error) {
@@ -105,7 +105,7 @@ func Scheduler(c <-chan time.Time) {
 func Start(ups *[]vcfg.Upstream) {
 	upstreams = ups
 	mutex.Lock()
-	stats = vutil.CAPArray{N: GAP_LENGTH}
+	stats = &vutil.CAPArray{N: GAP_LENGTH}
 	for i := 0; i < stats.N; i++ {
 		stats.Push(BuildCounter())
 	}
